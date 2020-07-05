@@ -1,5 +1,5 @@
 # Reward-Point-Coins
- Reward Point Coins - An improved way of Loyalty system for Visa using Blockchain for decentralized, fast and secure transactions.
+ Reward Point Coins - An advanced Loyalty systems for Visa Inc, using Blockchain for decentralized, fast and secure transactions.
 
 Rewards Point Coin (RPC) – available everywhere for everything!
 •         Reward points should be universal
