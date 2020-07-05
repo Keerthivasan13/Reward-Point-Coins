@@ -17,17 +17,17 @@ contract RewardContract {
     address owner = msg.sender;
     mapping(address => RewardPoint[]) public RewardStatus;
     
-    function registerUser(address user) public{
-        registeredUsers[user] = true;
+    function registerUser() public{
+        require(!registeredUsers[msg.sender], "User already registered!");
+        registeredUsers[msg.sender] = true;
     }
     
     function registerMerchant() public{
-        require(!registeredMerchants[merchant], "Merchant is already registered!");
+        require(!registeredMerchants[msg.sender], "Merchant already registered!");
         registeredMerchants[msg.sender] = true;
     }
     
     function earnPoints(address targetUser, string memory scope, string memory usePermissions, uint amount) public{
-        require(msg.sender == owner, "You can't do that!");
         require(registeredUsers[targetUser], "Unregistered user!");
         for(uint i = 0; i < RewardStatus[targetUser].length; i++){
             if(compareStrings(RewardStatus[targetUser][i].scope, scope) && compareStrings(RewardStatus[targetUser][i].usePermissions, usePermissions)){
@@ -42,15 +42,13 @@ contract RewardContract {
         }));
     }
     
-    function usePoints(address targetUser, address merchant, string memory scope, string memory usePermissions, uint amount) public{
-        require(msg.sender == owner, "You can't do that!");
-        require(registeredUsers[targetUser], "Unregistered user!");
+    function usePoints(address merchant, string memory scope, string memory usePermissions, uint amount) public{
         require(registeredMerchants[merchant], "Unregistered merchant!");
-            for(uint i = 0; i < RewardStatus[targetUser].length; i++){
-                if(compareStrings(RewardStatus[targetUser][i].scope, scope) && compareStrings(RewardStatus[targetUser][i].usePermissions, usePermissions)){
-                        require(RewardStatus[targetUser][i].balance >= amount, "Insufficient points!");
-                        RewardStatus[targetUser][i].balance -= amount;
-                        return;
+        for(uint i = 0; i < RewardStatus[msg.sender].length; i++){
+            if(compareStrings(RewardStatus[msg.sender][i].scope, scope) && compareStrings(RewardStatus[msg.sender][i].usePermissions, usePermissions)){
+                    require(RewardStatus[msg.sender][i].balance >= amount, "Insufficient points!");
+                    RewardStatus[msg.sender][i].balance -= amount;
+                    return;
                     }
                 }
                 
