@@ -9,7 +9,7 @@ let web3 = new Web3();
 web3.setProvider(new web3.providers.HttpProvider('HTTP://127.0.0.1:7475'));
 
 // Intialize the contract address for the Smart Contract RewardContract.sol
-let contractAddress = "0xaFF52eC40f621050c6a994a8A97Deb9488096927";
+let contractAddress = "0x6355b14d40280e5D37eD10a0D6F87Ae4517c2440";
 
 // Read the compiled artifacts necessary to access the contract
 let jsonStr = fs.readFileSync('build/contracts/RewardContract.json', 'utf8');
@@ -18,7 +18,16 @@ let abi = JSON.parse(jsonStr).abi;
 //Initialize the variables to be used in the program
 const maxMerchants = 5;
 const maxUsers = 5;
-let addresses = ["0x9E3179Bdd419c96c8e5800dD0E887b138D31502D", "0xCc33EdA7eC7c5193599c5aC55A1b5E629b0dA115", "0x30312F2F88ca51Acc73A70415F55c3e0b52C1b51", "0x27CC654c933439BB426E5d995e025Fb79Ae401fc", "0xD42A2a5432FC5Aa074107c1273C61bD4e8033241", "0xec9014C285DDe56D41AC40595c6D143846Ba89DD", "0xb8cd50Ecd6d41D6d65Bc73271e3B5b1b9Aa1E3AE", "0xb7f3B0e3ef6D854950cECbFA55825D2806B63417", "0x39762F198528d48708bA1C55DDbB7426A327b49A", "0x5e4eDB35105B8D77c03f1dF544852836Bd442fc4"]
+let addresses = ["0x1A68F413B3680e289204A6A4A6A7123dc9F05F07",
+"0xbF8F8Bc142A96e69a47889a63Da0714000C30E2E",
+"0x342C3C417E4746942aEf2De36181ec9ea93f9102",
+"0xbb28b416351440Be4BD5620f0109A283C32ef9F5",
+"0xB4f3ad256d6a4fdD3960feCf8563FD07Df191666",
+"0x0d870F51aEe90b353a4f0098a46be99AAaE1e3e4",
+"0x7b8dC35B207774c36c7E0947f5E58544B56Fba88",
+"0x658f8EBB7CD94EF06D6F5d04f97948B55a449d29",
+"0x7Ea35da7217B600A9eD1fC2d99c4f21F27FF4fA6",
+"0xf3dFcea6606BbD0370De513F97e3Cb3e894Bf68d"]
 let merchantInfoList = []
 let userInfoList = []
 let reward = new web3.eth.Contract(abi, contractAddress);
@@ -67,11 +76,12 @@ async function useAllRewardPoints() {
         amount : 5
     }
     await useRewardPointsAtMerchant(0, 0, rewardPoint)
-    await useRewardPointsAtMerchant(1, 0, rewardPoint)
+    await useRewardPointsAtMerchant(1, 1, rewardPoint)
+   
 }
 
 async function registerUser(address) {
-    await reward.methods.registerUser().send({from: address})
+    await reward.methods.registerUser().send({from: address});
 }
 
 async function registerMerchant(address) {
@@ -80,14 +90,15 @@ async function registerMerchant(address) {
 
 async function earnRewardPointsForUser(userIndex, rewardPoint) {
     await reward.methods.earnPoints(userInfoList[userIndex].address, rewardPoint.scope, rewardPoint.usePermissions, rewardPoint.amount)
+    console.log("User " + userInfoList[userIndex].name + " earned "+ rewardPoint.amount +" reward points of category " + rewardPoint.scope + " and permissions "+ rewardPoint.usePermissions);
 }
 
 async function useRewardPointsAtMerchant(userIndex, merchantIndex, rewardPoint) {
     await reward.methods.usePoints(merchantInfoList[merchantIndex].address, rewardPoint.scope, rewardPoint.usePermissions, rewardPoint.amount).send({from: userInfoList[userIndex].address})
+    console.log("User " + userInfoList[userIndex].name + " used "+ rewardPoint.amount +" reward points of category " + rewardPoint.scope + " and permissions "+ rewardPoint.usePermissions +" at "+ merchantInfoList[merchantIndex].name);
 }
 
 function loadMerchants() {
-    // Lily to populate Merchants from API
     let merchantList = ["Merchant1", "Merchant2", "Merchant3", "Merchant4", "Merchant5"]
 
     for (var i = 0; i < maxMerchants; i++) {
@@ -106,38 +117,38 @@ function loadUsers() {
 }
 
 async function sendMainTransaction() {
+    console.log("----- Reward Point Coins using Ethereum -----\n");
     loadMerchants()
     loadUsers()
     registerMerchants()
     .then(function() {
-        console.log("Registered the Merchants");
+        console.log("-----Registered the Merchants-----\n");
+        registerUsers()
+        .then(function() {
+            earnAllRewardPoints()
+            .then(function() {
+                console.log("-----Gave Reward Points to the Users-----\n");
+                useAllRewardPoints()
+                .then(function() {
+                    console.log("-----Used Reward Points at the Merchants-----\n");
+                })
+                .catch(function(error) {
+                    console.log(error);
+                })
+            })
+            .catch(function(error) {
+                console.log(error);
+            })
+            console.log("-----Registered the Users-----\n");
+        })
+        .catch(function(error) {
+            console.log(error);
+        })
     })
     .catch(function(error) {
         console.log(error);
     })
 
-    registerUsers()
-    .then(function() {
-        console.log("Registered the Users");
-    })
-    .catch(function(error) {
-        console.log(error);
-    })
 
-    earnAllRewardPoints()
-    .then(function() {
-        console.log("Gave Reward Points to the Users");
-    })
-    .catch(function(error) {
-        console.log(error);
-    })
-
-    useAllRewardPoints()
-    .then(function() {
-        console.log("Used Reward Points at the Merchants");
-    })
-    .catch(function(error) {
-        console.log(error);
-    })
 }
 
